@@ -2,7 +2,7 @@
 
 The Home Assistant config behind my Haptique RS90 remote. The physical buttons go to Home Assistant over MQTT, and the touchscreen shows a Lovelace dashboard in Fully Kiosk Browser. Haptique's own interface is hardly used.
 
-The full write-up is on my blog: https://peterblandford.com/blog/
+The full write-up is on my blog: https://peterblandford.com/blog/2026/09/20/haptique-rs90-with-home-assistant/
 
 <img src="images/rs90-activity-picker.jpg" width="300" alt="RS90 activity picker"> <img src="images/rs90-smart-tv-apps.jpg" width="300" alt="RS90 Smart TV apps"> <img src="images/rs90-lights-tab.jpg" width="300" alt="RS90 Lights tab">
 
