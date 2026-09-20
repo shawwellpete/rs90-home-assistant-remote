@@ -1,0 +1,261 @@
+# Sound mode panel, amp status + 6 modes in 3×2 grid
+type: vertical-stack
+card_mod:
+  style: |
+    :host { display: flex; flex-direction: column; gap: 12px; }
+cards:
+
+  # ── AMP VOLUME ROW: Vol, / Vol % + Mute / Vol + ─────────────────
+  - type: grid
+    columns: 3
+    square: false
+    cards:
+
+      - type: custom:mushroom-template-card
+        icon: mdi:volume-minus
+        primary: Vol —
+        secondary: ""
+        layout: vertical
+        icon_color: grey
+        tap_action:
+          action: call-service
+          service: media_player.volume_down
+          target:
+            entity_id: media_player.family_room_amp
+        card_mod:
+          style: |
+            ha-card { border-radius: 12px; min-height: 170px; background-color: rgba(0, 128, 255, 0.12); }
+            .primary { font-size: 13px; font-weight: 700; text-align: center; }
+            ha-state-icon { --mdc-icon-size: 32px; }
+
+      - type: custom:mushroom-template-card
+        icon: >
+          {% if state_attr('media_player.family_room_amp', 'is_volume_muted') %}
+            mdi:volume-off
+          {% else %}
+            mdi:volume-high
+          {% endif %}
+        primary: >
+          {% set vol = state_attr('media_player.family_room_amp', 'volume_level') %}
+          {{ (vol * 100) | round if vol is not none else '—' }}%
+        secondary: >
+          {% if state_attr('media_player.family_room_amp', 'is_volume_muted') %}Muted{% endif %}
+        layout: vertical
+        icon_color: >
+          {% if state_attr('media_player.family_room_amp', 'is_volume_muted') %}orange{% else %}grey{% endif %}
+        tap_action:
+          action: call-service
+          service: media_player.volume_mute
+          data:
+            is_volume_muted: >
+              {{ not state_attr('media_player.family_room_amp', 'is_volume_muted') }}
+          target:
+            entity_id: media_player.family_room_amp
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 12px;
+              min-height: 170px;
+              background-color: {% if state_attr('media_player.family_room_amp', 'is_volume_muted') %}
+                rgba(255, 165, 0, 0.22)
+              {% else %}
+                rgba(0, 128, 255, 0.12)
+              {% endif %};
+            }
+            .primary { font-size: 13px; font-weight: 700; text-align: center; }
+            ha-state-icon { --mdc-icon-size: 32px; }
+
+      - type: custom:mushroom-template-card
+        icon: mdi:volume-plus
+        primary: Vol +
+        secondary: ""
+        layout: vertical
+        icon_color: grey
+        tap_action:
+          action: call-service
+          service: media_player.volume_up
+          target:
+            entity_id: media_player.family_room_amp
+        card_mod:
+          style: |
+            ha-card { border-radius: 12px; min-height: 170px; background-color: rgba(0, 128, 255, 0.12); }
+            .primary { font-size: 13px; font-weight: 700; text-align: center; }
+            ha-state-icon { --mdc-icon-size: 32px; }
+
+  # ── SOUND MODE GRID: 3 columns × 2 rows ───────────────────────────
+  - type: grid
+    columns: 3
+    square: false
+    cards:
+
+      # ── ROW 1: Core modes ─────────────────────────────────────────
+
+      - type: custom:mushroom-template-card
+        icon: mdi:equalizer
+        primary: Straight
+        secondary: ""
+        layout: vertical
+        icon_color: >
+          {% if state_attr('media_player.family_room_amp','sound_mode') == 'straight' %}orange{% else %}grey{% endif %}
+        tap_action:
+          action: call-service
+          service: media_player.select_sound_mode
+          data:
+            sound_mode: straight
+          target:
+            entity_id: media_player.family_room_amp
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 12px;
+              min-height: 130px;
+              background-color: {% if state_attr('media_player.family_room_amp','sound_mode') == 'straight' %}
+                rgba(255, 165, 0, 0.22)
+              {% else %}
+                rgba(0, 128, 255, 0.12)
+              {% endif %};
+            }
+            .primary { font-size: 13px; font-weight: 700; text-align: center; }
+            ha-state-icon { --mdc-icon-size: 32px; }
+
+      - type: custom:mushroom-template-card
+        icon: mdi:surround-sound
+        primary: Surround
+        secondary: ""
+        layout: vertical
+        icon_color: >
+          {% if state_attr('media_player.family_room_amp','sound_mode') == 'surr_decoder' %}orange{% else %}grey{% endif %}
+        tap_action:
+          action: call-service
+          service: media_player.select_sound_mode
+          data:
+            sound_mode: surr_decoder
+          target:
+            entity_id: media_player.family_room_amp
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 12px;
+              min-height: 130px;
+              background-color: {% if state_attr('media_player.family_room_amp','sound_mode') == 'surr_decoder' %}
+                rgba(255, 165, 0, 0.22)
+              {% else %}
+                rgba(0, 128, 255, 0.12)
+              {% endif %};
+            }
+            .primary { font-size: 13px; font-weight: 700; text-align: center; }
+            ha-state-icon { --mdc-icon-size: 32px; }
+
+      - type: custom:mushroom-template-card
+        icon: mdi:speaker-multiple
+        primary: Stereo
+        secondary: ""
+        layout: vertical
+        icon_color: >
+          {% if state_attr('media_player.family_room_amp','sound_mode') == 'all_ch_stereo' %}orange{% else %}grey{% endif %}
+        tap_action:
+          action: call-service
+          service: media_player.select_sound_mode
+          data:
+            sound_mode: all_ch_stereo
+          target:
+            entity_id: media_player.family_room_amp
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 12px;
+              min-height: 130px;
+              background-color: {% if state_attr('media_player.family_room_amp','sound_mode') == 'all_ch_stereo' %}
+                rgba(255, 165, 0, 0.22)
+              {% else %}
+                rgba(0, 128, 255, 0.12)
+              {% endif %};
+            }
+            .primary { font-size: 13px; font-weight: 700; text-align: center; }
+            ha-state-icon { --mdc-icon-size: 32px; }
+
+      # ── ROW 2: DSP flavours ───────────────────────────────────────
+
+      - type: custom:mushroom-template-card
+        icon: mdi:theater
+        primary: Drama
+        secondary: ""
+        layout: vertical
+        icon_color: >
+          {% if state_attr('media_player.family_room_amp','sound_mode') == 'drama' %}orange{% else %}grey{% endif %}
+        tap_action:
+          action: call-service
+          service: media_player.select_sound_mode
+          data:
+            sound_mode: drama
+          target:
+            entity_id: media_player.family_room_amp
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 12px;
+              min-height: 130px;
+              background-color: {% if state_attr('media_player.family_room_amp','sound_mode') == 'drama' %}
+                rgba(255, 165, 0, 0.22)
+              {% else %}
+                rgba(0, 128, 255, 0.12)
+              {% endif %};
+            }
+            .primary { font-size: 13px; font-weight: 700; text-align: center; }
+            ha-state-icon { --mdc-icon-size: 32px; }
+
+      - type: custom:mushroom-template-card
+        icon: mdi:stadium
+        primary: Spectacle
+        secondary: ""
+        layout: vertical
+        icon_color: >
+          {% if state_attr('media_player.family_room_amp','sound_mode') == 'spectacle' %}orange{% else %}grey{% endif %}
+        tap_action:
+          action: call-service
+          service: media_player.select_sound_mode
+          data:
+            sound_mode: spectacle
+          target:
+            entity_id: media_player.family_room_amp
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 12px;
+              min-height: 130px;
+              background-color: {% if state_attr('media_player.family_room_amp','sound_mode') == 'spectacle' %}
+                rgba(255, 165, 0, 0.22)
+              {% else %}
+                rgba(0, 128, 255, 0.12)
+              {% endif %};
+            }
+            .primary { font-size: 13px; font-weight: 700; text-align: center; }
+            ha-state-icon { --mdc-icon-size: 32px; }
+
+      - type: custom:mushroom-template-card
+        icon: mdi:volume-equal
+        primary: Mono
+        secondary: ""
+        layout: vertical
+        icon_color: >
+          {% if state_attr('media_player.family_room_amp','sound_mode') == 'mono_movie' %}orange{% else %}grey{% endif %}
+        tap_action:
+          action: call-service
+          service: media_player.select_sound_mode
+          data:
+            sound_mode: mono_movie
+          target:
+            entity_id: media_player.family_room_amp
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 12px;
+              min-height: 130px;
+              background-color: {% if state_attr('media_player.family_room_amp','sound_mode') == 'mono_movie' %}
+                rgba(255, 165, 0, 0.22)
+              {% else %}
+                rgba(0, 128, 255, 0.12)
+              {% endif %};
+            }
+            .primary { font-size: 13px; font-weight: 700; text-align: center; }
+            ha-state-icon { --mdc-icon-size: 32px; }

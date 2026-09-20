@@ -1,0 +1,433 @@
+# RS90 (Haptique smart remote) automations.
+# Extracted from the main automations.yaml list, merge these entries into
+# your own automations.yaml (or an !include'd file) rather than replacing it.
+#
+# Sanitisation applied throughout this file:
+#   - The Haptique remote/device id (from the MQTT topic) -> YOUR_REMOTE_ID
+#   - The RS90's LAN IP address (in a notification message) -> YOUR_RS90_IP
+
+- id: rs90_activity_reset_to_rest
+  alias: RS90 – Activity reset to rest (timer)
+  mode: restart
+  triggers:
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.rs90_activity_timer
+  actions:
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_activity
+    data:
+      option: rest
+
+- id: rs90_family_room_buttons
+  alias: RS90 Family Room buttons
+  mode: queued
+  triggers:
+  - platform: mqtt
+    topic: Haptique/YOUR_REMOTE_ID/keys
+  variables:
+    payload: '{{ trigger.payload | string }}'
+    button: '{{ payload | replace(''button:'', '''') | int(0) }}'
+    activity: '{{ states(''sensor.family_room_activity'') }}'
+    display: '{{ states(''input_select.rs90_display'') }}'
+  conditions:
+  - condition: template
+    value_template: '{{ payload is string and payload.startswith(''button:'') }}'
+  actions:
+  - action: button.press
+    target:
+      entity_id: button.rs90_family_room_rgb_ring_light
+  - choose:
+    - conditions: '{{ button == 22 }}'
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.rs90_activity
+        data:
+          option: home
+    - conditions: '{{ button == 2 }}'
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.rs90_activity
+        data:
+          option: home
+    - conditions: '{{ button in [4, 11] }}'
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.rs90_activity
+        data:
+          option: vol_up
+      - action: timer.start
+        target:
+          entity_id: timer.rs90_activity_timer
+    - conditions: '{{ button in [5, 12] }}'
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.rs90_activity
+        data:
+          option: vol_down
+      - action: timer.start
+        target:
+          entity_id: timer.rs90_activity_timer
+    - conditions: '{{ button == 24 }}'
+      sequence:
+      - variables:
+          next_display: '{% set d = states(''input_select.rs90_display'') %} {% if
+            d == ''Remote'' %}Lights {% elif d == ''Lights'' %}Sound {% else %}Remote
+            {% endif %}'
+          banner_mode: '{% if next_display == ''Remote'' %}channels {% elif next_display
+            == ''Lights'' %}lights {% else %}sound {% endif %}'
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.rs90_display
+        data:
+          option: '{{ next_display }}'
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.rs90_activity
+        data:
+          option: '{{ banner_mode }}'
+      - action: timer.start
+        target:
+          entity_id: timer.rs90_activity_timer
+    default: []
+  - choose:
+    - conditions: '{{ button == 22 }}'
+      sequence:
+      - action: input_select.select_option
+        target:
+          entity_id: input_select.rs90_display
+        data:
+          option: Remote
+    - conditions: '{{ button == 23 }}'
+      sequence:
+      - action: button.press
+        target:
+          entity_id: button.haptique_rs90_restart_browser
+        continue_on_error: true
+    - conditions: '{{ button == 2 }}'
+      sequence:
+      - choose:
+        - conditions: '{{ activity in [''Smart TV'', ''Nintendo''] }}'
+          sequence:
+          - action: webostv.button
+            data:
+              entity_id: media_player.family_room_tv
+              button: HOME
+        - conditions: '{{ activity not in [''Smart TV'', ''Nintendo''] }}'
+          sequence:
+          - action: input_select.select_option
+            target:
+              entity_id: input_select.rs90_display
+            data:
+              option: Remote
+    - conditions: '{{ button in [1, 19] }}'
+      sequence:
+      - choose:
+        - conditions: '{{ button == 1 and activity == ''Off'' }}'
+          sequence:
+          - action: script.turn_on
+            target:
+              entity_id: script.family_room_tv_on
+        - conditions: '{{ button == 1 and activity != ''Off'' }}'
+          sequence:
+          - action: script.turn_on
+            target:
+              entity_id: script.family_room_av_off
+        - conditions: '{{ button == 19 }}'
+          sequence:
+          - action: script.turn_on
+            target:
+              entity_id: script.family_room_nintendo_on
+    - conditions: '{{ button in [4, 5, 11, 12, 15] }}'
+      sequence:
+      - choose:
+        - conditions: '{{ button in [4, 11] }}'
+          sequence:
+          - action: media_player.volume_up
+            target:
+              entity_id:
+              - media_player.family_room_amp
+              - media_player.kitchen
+              - media_player.move
+              - media_player.family_room
+        - conditions: '{{ button in [5, 12] }}'
+          sequence:
+          - action: media_player.volume_down
+            target:
+              entity_id:
+              - media_player.family_room_amp
+              - media_player.kitchen
+              - media_player.move
+              - media_player.family_room
+        - conditions: '{{ button == 15 }}'
+          sequence:
+          - action: media_player.volume_mute
+            target:
+              entity_id:
+              - media_player.family_room_amp
+              - media_player.kitchen
+              - media_player.move
+              - media_player.family_room
+            data:
+              is_volume_muted: '{{ not (state_attr(''media_player.family_room_amp'',''is_volume_muted'')
+                | default(false)) }}'
+    - conditions: '{{ activity == ''Freesat'' and button in [16, 17, 18] }}'
+      sequence:
+      - action: mqtt.publish
+        data:
+          topic: Haptique/YOUR_REMOTE_ID/device/Humax - 2430/trigger
+          payload: '{% if button == 16 %}MEDIA_REWIND{% elif button == 17 %}PLAY_PAUSE{%
+            elif button == 18 %}FAST_FORWARD{% endif %}'
+    - conditions: '{{ activity == ''Sonos'' and button in [16, 17, 18] }}'
+      sequence:
+      - choose:
+        - conditions: '{{ button == 16 }}'
+          sequence:
+          - action: media_player.media_previous_track
+            target:
+              entity_id: media_player.family_room
+        - conditions: '{{ button == 17 }}'
+          sequence:
+          - action: media_player.media_play_pause
+            target:
+              entity_id: media_player.family_room
+        - conditions: '{{ button == 18 }}'
+          sequence:
+          - action: media_player.media_next_track
+            target:
+              entity_id: media_player.family_room
+    - conditions: '{{ activity in [''Smart TV'', ''Nintendo''] and button in [16,
+        17, 18] }}'
+      sequence:
+      - choose:
+        - conditions: '{{ button == 16 }}'
+          sequence:
+          - action: media_player.media_previous_track
+            target:
+              entity_id: media_player.family_room_tv
+        - conditions: '{{ button == 17 }}'
+          sequence:
+          - action: media_player.media_play_pause
+            target:
+              entity_id: media_player.family_room_tv
+        - conditions: '{{ button == 18 }}'
+          sequence:
+          - action: media_player.media_next_track
+            target:
+              entity_id: media_player.family_room_tv
+    - conditions: '{{ activity == ''Freesat'' and button in [6,7,8,9,10,13,14] }}'
+      sequence:
+      - action: mqtt.publish
+        data:
+          topic: Haptique/YOUR_REMOTE_ID/device/Humax - 2430/trigger
+          payload: '{% if button == 6 %}UP{% elif button == 7 %}DOWN{% elif button
+            == 8 %}LEFT{% elif button == 9 %}RIGHT{% elif button == 10 %}OK{% elif
+            button == 13 %}BACK{% elif button == 14 %}MENU{% endif %}'
+    - conditions: '{{ activity in [''Smart TV'',''Nintendo'',''Sonos''] and button
+        in [6,7,8,9,10,13,14] }}'
+      sequence:
+      - action: webostv.button
+        data:
+          entity_id: media_player.family_room_tv
+          button: '{% if button == 6 %}UP{% elif button == 7 %}DOWN{% elif button
+            == 8 %}LEFT{% elif button == 9 %}RIGHT{% elif button == 10 %}ENTER{% elif
+            button == 13 %}BACK{% elif button == 14 %}MENU{% endif %}'
+    default: []
+
+- id: rs90_show_lights_on_tv_source_change
+  alias: RS90 - Show Lights when TV source changes
+  mode: restart
+  triggers:
+  - platform: state
+    entity_id: media_player.family_room_tv
+    attribute: source
+  conditions:
+  - condition: template
+    value_template: "{{ trigger.to_state is not none\n   and trigger.to_state.attributes
+      is defined\n   and trigger.to_state.attributes.source is defined\n   and trigger.to_state.attributes.source
+      not in [none, '', 'Unknown', 'unknown'] }}\n"
+  - condition: template
+    value_template: "{{ trigger.from_state is not none\n   and trigger.from_state.state
+      not in ['off', 'unavailable', 'unknown']\n   and trigger.from_state.attributes
+      is defined\n   and trigger.from_state.attributes.source is defined\n   and trigger.from_state.attributes.source
+      not in [none, '', 'Unknown', 'unknown'] }}\n"
+  - condition: state
+    entity_id: sensor.family_room_activity
+    state: Smart TV
+  actions:
+  - action: button.press
+    target:
+      entity_id: button.rs90_family_room_rgb_ring_light
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_display
+    data:
+      option: Lights
+
+- id: rs90_force_remote_when_charging
+  alias: RS90 – Force Remote view when charging
+  mode: single
+  triggers:
+  - platform: state
+    entity_id: binary_sensor.haptique_rs90_plugged_in
+    to: 'on'
+  actions:
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_display
+    data:
+      option: Remote
+
+- id: rs90_low_battery_latch_on
+  alias: RS90 – Low battery latch ON
+  mode: single
+  triggers:
+  - platform: numeric_state
+    entity_id: sensor.haptique_rs90_battery
+    below: 25
+  conditions:
+  - condition: state
+    entity_id: binary_sensor.haptique_rs90_plugged_in
+    state: 'off'
+  actions:
+  - action: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.rs90_low_battery_latch
+
+- id: rs90_low_battery_latch_off
+  alias: RS90 – Low battery latch OFF
+  mode: single
+  triggers:
+  - platform: numeric_state
+    entity_id: sensor.haptique_rs90_battery
+    above: 28
+  actions:
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.rs90_low_battery_latch
+
+- id: rs90_low_battery_repeat_alert
+  alias: RS90 – Low battery repeating alert
+  mode: restart
+  triggers:
+  - platform: state
+    entity_id: input_boolean.rs90_low_battery_latch
+    to: 'on'
+  actions:
+  - repeat:
+      while:
+      - condition: state
+        entity_id: input_boolean.rs90_low_battery_latch
+        state: 'on'
+      - condition: state
+        entity_id: binary_sensor.haptique_rs90_plugged_in
+        state: 'off'
+      sequence:
+      - action: button.press
+        target:
+          entity_id: button.rs90_family_room_rgb_ring_light
+      - delay: 00:01:00
+
+- id: family_room_set_display_on_external_start
+  alias: Family Room - Set RS90 display to Remote on external activity start
+  triggers:
+  - entity_id: sensor.family_room_activity
+    from: 'Off'
+    not_to:
+    - unavailable
+    - unknown
+    trigger: state
+  actions:
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_display
+    data:
+      option: Remote
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_activity
+    data:
+      option: rest
+  - action: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.using_family_room
+    enabled: false
+  mode: single
+
+- id: rs90_reset_display_when_activity_off
+  alias: RS90 - Reset display to Lights tab when family room goes idle
+  description: After 60s of inactivity (activity = Off), show Lights panel — Off state
+    defaults to lights not remote
+  mode: restart
+  triggers:
+  - platform: state
+    entity_id: sensor.family_room_activity
+    to: 'Off'
+    for:
+      seconds: 60
+  actions:
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_display
+    data:
+      option: Lights
+
+- id: rs90_home_button_30s_timeout
+  alias: RS90 - Reset activity from home to rest after 30s
+  description: When dot button sets rs90_activity=home (shows picker), reset to rest
+    after 30s if not changed
+  mode: restart
+  triggers:
+  - platform: state
+    entity_id: input_select.rs90_activity
+    to: home
+  actions:
+  - delay:
+      seconds: 30
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_activity
+    data:
+      option: rest
+
+- id: rs90_fully_kiosk_unavailable_alert
+  alias: RS90 – Alert when Fully Kiosk goes unavailable
+  mode: single
+  triggers:
+  - platform: state
+    entity_id: button.haptique_rs90_restart_browser
+    to: unavailable
+    for:
+      seconds: 30
+  actions:
+  - action: persistent_notification.create
+    data:
+      title: RS90 Fully Kiosk down
+      message: Fully Kiosk on the RS90 (YOUR_RS90_IP) is unreachable — RS90 screen
+        will be frozen. Restart the tablet manually if needed.
+      notification_id: rs90_fk_unavailable
+  - action: button.press
+    target:
+      entity_id: button.haptique_rs90_restart_browser
+    continue_on_error: true
+
+- id: clear_rs90_retained_on_ha_start
+  alias: Clear RS90 retained MQTT on HA start
+  description: Prevents last RS90 button press (retained MQTT) from re-firing on HA
+    restart
+  triggers:
+  - platform: homeassistant
+    event: start
+  actions:
+  - action: mqtt.publish
+    data:
+      topic: Haptique/YOUR_REMOTE_ID/keys
+      payload: ''
+      retain: true
+  mode: single

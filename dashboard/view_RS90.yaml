@@ -1,0 +1,321 @@
+# RS90 Lovelace view. Add under `views:` in your ui-lovelace.yaml, e.g.:
+#   views:
+#     - !include dashboard/view_RS90.yaml
+#
+# Sanitisation applied: the two 32-hex `visible: user:` ids below are HA user
+# ids from the source install (one for the owner's own account, one for a
+# restricted account used by the RS90 device itself) -> replaced with placeholders.
+# Look up your own via Settings > People > Users (or .storage/auth in a
+# stopped HA instance) and swap in your ids, or delete the `visible:` block
+# entirely to show the view to everyone.
+#
+# Include paths below were moved from `remote/...` (flat, alongside this
+# file in the live config) to `includes/remote/...` to match this repo's
+# dashboard/includes/ layout, adjust back to `remote/...` if you place the
+# includes/remote contents directly alongside this file instead.
+title: RS90 Family Room
+path: rs90
+panel: true
+kiosk_mode:
+  hide_header: true
+  hide_sidebar: true
+
+visible:
+  - user: YOUR_HA_USER_ID_OWNER
+  - user: YOUR_HA_USER_ID_RS90_DEVICE
+
+badges: []
+
+cards:
+  - type: vertical-stack
+    card_mod:
+      style: |
+        ha-card {
+          overflow: hidden;
+          background: transparent;
+          box-shadow: none;
+          border-radius: 0;
+          margin: 0;
+          padding: 0;
+        }
+    cards:
+
+      ################################################################
+      # ZONE 1: CONTEXT STRIP (59px fixed)
+      # Sonos + Remote: vol down / mute / vol up / amp toggle
+      # All other states: context info (battery/charging/feedback/lamp)
+      ################################################################
+      - type: vertical-stack
+        card_mod:
+          style: |
+            ha-card {
+              height: 59px;
+              min-height: 59px;
+              max-height: 59px;
+              overflow: hidden;
+              background: transparent;
+              box-shadow: none;
+              border-radius: 0;
+              margin: 0;
+              padding: 0;
+            }
+        cards:
+
+          # Sonos + Remote → volume controls in strip
+          - type: conditional
+            conditions:
+              - entity: sensor.family_room_activity
+                state: "Sonos"
+              - entity: input_select.rs90_display
+                state: "Remote"
+            card: !include includes/remote/rs90_sonos_vol_strip.yaml
+
+          # Not Sonos → context info
+          - type: conditional
+            conditions:
+              - entity: sensor.family_room_activity
+                state_not: "Sonos"
+            card: !include includes/remote/rs90_context_strip.yaml
+
+          # Sonos + Lights or Sound tab → context info
+          - type: conditional
+            conditions:
+              - entity: sensor.family_room_activity
+                state: "Sonos"
+              - entity: input_select.rs90_display
+                state_not: "Remote"
+            card: !include includes/remote/rs90_context_strip.yaml
+
+      ################################################################
+      # ZONE 2: MAIN CONTENT AREA (671px fixed)
+      # Priority order, only one conditional is ever true at a time.
+      ################################################################
+      - type: vertical-stack
+        card_mod:
+          style: |
+            ha-card {
+              height: 671px;
+              min-height: 671px;
+              max-height: 671px;
+              overflow: hidden;
+              background: transparent;
+              box-shadow: none;
+              padding: 0;
+              margin: 0;
+            }
+        cards:
+
+          # ── PRIORITY 1: home override, always show picker ─────────
+          - type: conditional
+            conditions:
+              - entity: input_select.rs90_activity
+                state: "home"
+            card: !include includes/remote/rs90_off_screen.yaml
+
+          # ── LIGHTS PANEL, TV activity (Smart TV / Freesat / Nintendo)
+          - type: conditional
+            conditions:
+              - entity: input_select.rs90_activity
+                state_not: "home"
+              - entity: input_select.rs90_display
+                state: "Lights"
+              - entity: sensor.family_room_activity
+                state_not: "Off"
+              - entity: sensor.family_room_activity
+                state_not: "Sonos"
+            card: !include includes/remote/rs90_lights.yaml
+
+          # ── LIGHTS PANEL, Off state (mood scenes) ───────────────
+          - type: conditional
+            conditions:
+              - entity: input_select.rs90_activity
+                state_not: "home"
+              - entity: input_select.rs90_display
+                state: "Lights"
+              - entity: sensor.family_room_activity
+                state: "Off"
+            card: !include includes/remote/rs90_lights_sonos.yaml
+
+          # ── LIGHTS PANEL, Sonos state (mood scenes) ─────────────
+          - type: conditional
+            conditions:
+              - entity: input_select.rs90_activity
+                state_not: "home"
+              - entity: input_select.rs90_display
+                state: "Lights"
+              - entity: sensor.family_room_activity
+                state: "Sonos"
+            card: !include includes/remote/rs90_lights_sonos.yaml
+
+          # ── SOUND PANEL, any activity, display = Sound ──────────
+          - type: conditional
+            conditions:
+              - entity: input_select.rs90_activity
+                state_not: "home"
+              - entity: input_select.rs90_display
+                state: "Sound"
+            card: !include includes/remote/remote_family_room_sound_v2.yaml
+
+          # ── SMART TV: channels ─────────────────────────────────────
+          - type: conditional
+            conditions:
+              - entity: input_select.rs90_activity
+                state_not: "home"
+              - entity: input_select.rs90_display
+                state: "Remote"
+              - entity: sensor.family_room_activity
+                state: "Smart TV"
+            card: !include includes/remote/rs90_TV_Channels.yaml
+
+          # ── FREESAT: freesat remote ───────────────────────────────
+          - type: conditional
+            conditions:
+              - entity: input_select.rs90_activity
+                state_not: "home"
+              - entity: input_select.rs90_display
+                state: "Remote"
+              - entity: sensor.family_room_activity
+                state: "Freesat"
+            card: !include includes/remote/rs90_freesat.yaml
+
+          # ── NINTENDO: picker (no dedicated panel) ─────────────────
+          - type: conditional
+            conditions:
+              - entity: input_select.rs90_activity
+                state_not: "home"
+              - entity: input_select.rs90_display
+                state: "Remote"
+              - entity: sensor.family_room_activity
+                state: "Nintendo"
+            card: !include includes/remote/rs90_off_screen.yaml
+
+          # ── SONOS: maxi media player ──────────────────────────────
+          - type: conditional
+            conditions:
+              - entity: input_select.rs90_activity
+                state_not: "home"
+              - entity: input_select.rs90_display
+                state: "Remote"
+              - entity: sensor.family_room_activity
+                state: "Sonos"
+            card: !include includes/remote/remote_family_room_sonos_v2.yaml
+
+          # ── OFF: activity picker ───────────────────────────────────
+          - type: conditional
+            conditions:
+              - entity: input_select.rs90_activity
+                state_not: "home"
+              - entity: input_select.rs90_display
+                state: "Remote"
+              - entity: sensor.family_room_activity
+                state: "Off"
+            card: !include includes/remote/rs90_off_screen.yaml
+
+      ################################################################
+      # ZONE 3: NAV BAR (60px fixed)
+      # Three buttons: Remote / Lights / Sound
+      ################################################################
+      - type: grid
+        columns: 3
+        square: false
+        card_mod:
+          style: |
+            ha-card {
+              height: 60px;
+              min-height: 60px;
+              max-height: 60px;
+              overflow: hidden;
+              padding: 0;
+              margin: 0;
+              background: transparent;
+              box-shadow: none;
+              border-radius: 0;
+            }
+        cards:
+
+          # ── REMOTE ────────────────────────────────────────────────
+          - type: custom:button-card
+            entity: input_select.rs90_display
+            name: Remote
+            icon: mdi:remote
+            show_state: false
+            tap_action:
+              action: call-service
+              service: input_select.select_option
+              service_data:
+                entity_id: input_select.rs90_display
+                option: Remote
+            styles:
+              card:
+                - height: 56px
+                - border-radius: 10px
+                - padding: 4px
+                - background-color: >
+                    [[[return entity.state === 'Remote' ? 'rgba(255,165,0,0.22)' : 'rgba(128,128,128,0.10)';]]]
+              icon:
+                - width: 20px
+                - color: >
+                    [[[return entity.state === 'Remote' ? '#FFA500' : 'var(--secondary-text-color)';]]]
+              name:
+                - font-size: 12px
+                - font-weight: 600
+                - color: >
+                    [[[return entity.state === 'Remote' ? '#FFA500' : 'var(--secondary-text-color)';]]]
+
+          # ── LIGHTS ────────────────────────────────────────────────
+          - type: custom:button-card
+            entity: input_select.rs90_display
+            name: Lights
+            icon: mdi:lightbulb
+            show_state: false
+            tap_action:
+              action: call-service
+              service: input_select.select_option
+              service_data:
+                entity_id: input_select.rs90_display
+                option: Lights
+            styles:
+              card:
+                - height: 56px
+                - border-radius: 10px
+                - padding: 4px
+                - background-color: >
+                    [[[return entity.state === 'Lights' ? 'rgba(255,165,0,0.22)' : 'rgba(128,128,128,0.10)';]]]
+              icon:
+                - width: 20px
+                - color: >
+                    [[[return entity.state === 'Lights' ? '#FFA500' : 'var(--secondary-text-color)';]]]
+              name:
+                - font-size: 12px
+                - font-weight: 600
+                - color: >
+                    [[[return entity.state === 'Lights' ? '#FFA500' : 'var(--secondary-text-color)';]]]
+
+          # ── SOUND ─────────────────────────────────────────────────
+          - type: custom:button-card
+            entity: input_select.rs90_display
+            name: Sound
+            icon: mdi:surround-sound
+            show_state: false
+            tap_action:
+              action: call-service
+              service: input_select.select_option
+              service_data:
+                entity_id: input_select.rs90_display
+                option: Sound
+            styles:
+              card:
+                - height: 56px
+                - border-radius: 10px
+                - padding: 4px
+                - background-color: >
+                    [[[return entity.state === 'Sound' ? 'rgba(255,165,0,0.22)' : 'rgba(128,128,128,0.10)';]]]
+              icon:
+                - width: 20px
+                - color: >
+                    [[[return entity.state === 'Sound' ? '#FFA500' : 'var(--secondary-text-color)';]]]
+              name:
+                - font-size: 12px
+                - font-weight: 600
+                - color: >
+                    [[[return entity.state === 'Sound' ? '#FFA500' : 'var(--secondary-text-color)';]]]

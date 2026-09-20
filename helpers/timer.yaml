@@ -1,0 +1,6 @@
+# RS90 timer helper, extracted from configuration.yaml's top-level `timer:` block.
+# Merge this key into your own timer: block (do not paste "timer:" twice).
+
+rs90_activity_timer:
+  name: RS90 Activity Timer
+  duration: "00:00:03"

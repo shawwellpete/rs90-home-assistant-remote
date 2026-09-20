@@ -1,0 +1,232 @@
+# RS90 activity-launch scripts, extracted from scripts.yaml.
+# Merge these keys into your own scripts.yaml.
+#
+# Sanitisation applied: the Haptique remote/device id -> YOUR_REMOTE_ID
+# (in family_room_freesat_on's Humax IR-trigger publishes).
+#
+# Note: these scripts also call script.pause_downstairs_sonos_if_playing and
+# script.downstairs_tv, which are shared downstairs-wide scripts (used by
+# other rooms too, not RS90-specific) and are NOT included here, point them
+# at your own equivalents or strip those two actions out.
+
+family_room_tv_on:
+  alias: Family Room TV
+  icon: mdi:television
+  mode: parallel
+  max: 10
+  sequence:
+  - action: button.press
+    target:
+      entity_id: button.rs90_family_room_rgb_ring_light
+    continue_on_error: true
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_activity
+    data:
+      option: rest
+  - action: script.pause_downstairs_sonos_if_playing
+  - target:
+      entity_id:
+      - input_boolean.using_family_room
+    action: input_boolean.turn_on
+  - action: script.downstairs_tv
+    enabled: false
+  - target:
+      entity_id: media_player.family_room_tv
+    action: media_player.turn_on
+  - target:
+      entity_id: media_player.family_room_amp
+    action: media_player.turn_on
+  - target:
+      entity_id: input_select.rs90_display
+    data:
+      option: Remote
+    action: input_select.select_option
+  - delay: 00:00:02
+  - target:
+      entity_id: media_player.family_room_amp
+    data:
+      source: TV
+    action: media_player.select_source
+  - target:
+      entity_id: media_player.family_room_amp
+    data:
+      sound_mode: drama
+    action: media_player.select_sound_mode
+  - action: button.press
+    target:
+      entity_id: button.rs90_family_room_rgb_ring_light
+    continue_on_error: true
+
+family_room_sonos_on:
+  alias: Family Room Sonos
+  icon: mdi:speaker-multiple
+  mode: single
+  sequence:
+  - action: button.press
+    target:
+      entity_id: button.rs90_family_room_rgb_ring_light
+    continue_on_error: true
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_activity
+    data:
+      option: rest
+  - target:
+      entity_id: media_player.family_room_tv
+    action: media_player.turn_off
+  - target:
+      entity_id: media_player.family_room_amp
+    action: media_player.turn_on
+  - target:
+      entity_id: media_player.family_room_amp
+    data:
+      source: AUDIO3
+    action: media_player.select_source
+  - target:
+      entity_id: media_player.family_room_amp
+    data:
+      sound_mode: all_ch_stereo
+    action: media_player.select_sound_mode
+  - target:
+      entity_id: input_select.rs90_display
+    data:
+      option: Remote
+    action: input_select.select_option
+  - target:
+      entity_id: media_player.family_room
+    action: media_player.media_play
+  - action: button.press
+    target:
+      entity_id: button.rs90_family_room_rgb_ring_light
+    continue_on_error: true
+
+family_room_av_off:
+  alias: Family Room Off
+  icon: mdi:power
+  mode: parallel
+  sequence:
+  - target:
+      entity_id: input_select.rs90_display
+    data:
+      option: Lights
+    action: input_select.select_option
+  - action: script.pause_downstairs_sonos_if_playing
+  - target:
+      entity_id:
+      - media_player.family_room_tv
+      - media_player.family_room_amp
+    action: media_player.turn_off
+  - target:
+      entity_id:
+      - input_boolean.using_family_room
+    action: input_boolean.turn_off
+
+family_room_freesat_on:
+  alias: Family Room Freesat
+  icon: mdi:satellite-variant
+  mode: parallel
+  sequence:
+  - action: button.press
+    target:
+      entity_id: button.rs90_family_room_rgb_ring_light
+    continue_on_error: true
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_activity
+    data:
+      option: rest
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_display
+    data:
+      option: Remote
+  - action: script.pause_downstairs_sonos_if_playing
+  - action: input_boolean.turn_on
+    target:
+      entity_id:
+      - input_boolean.using_family_room
+  - action: script.downstairs_tv
+  - action: media_player.turn_on
+    target:
+      entity_id: media_player.family_room_tv
+  - action: media_player.turn_on
+    target:
+      entity_id: media_player.family_room_amp
+  - delay: 00:00:02
+  - action: media_player.select_source
+    target:
+      entity_id: media_player.family_room_tv
+    data:
+      source: RX-V6A
+  - action: media_player.select_source
+    target:
+      entity_id: media_player.family_room_amp
+    data:
+      source: Freesat
+  - action: media_player.select_sound_mode
+    target:
+      entity_id: media_player.family_room_amp
+    data:
+      sound_mode: straight
+  - delay: 00:00:01
+  - action: mqtt.publish
+    data:
+      topic: Haptique/YOUR_REMOTE_ID/device/Humax - 2430/trigger
+      payload: POWER
+  - delay: 00:00:01
+  - action: mqtt.publish
+    data:
+      topic: Haptique/YOUR_REMOTE_ID/device/Humax - 2430/trigger
+      payload: POWER
+  - action: button.press
+    target:
+      entity_id: button.rs90_family_room_rgb_ring_light
+    continue_on_error: true
+
+family_room_nintendo_on:
+  alias: Family Room Nintendo
+  icon: mdi:nintendo-switch
+  mode: parallel
+  sequence:
+  - action: button.press
+    target:
+      entity_id: button.rs90_family_room_rgb_ring_light
+    continue_on_error: true
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_activity
+    data:
+      option: rest
+  - action: script.pause_downstairs_sonos_if_playing
+  - action: input_boolean.turn_on
+    target:
+      entity_id:
+      - input_boolean.using_family_room
+  - action: script.downstairs_tv
+  - action: media_player.turn_on
+    target:
+      entity_id: media_player.family_room_tv
+  - action: media_player.turn_on
+    target:
+      entity_id: media_player.family_room_amp
+  - delay: 00:00:02
+  - action: media_player.select_source
+    target:
+      entity_id: media_player.family_room_tv
+    data:
+      source: RX-V6A
+  - action: media_player.select_source
+    target:
+      entity_id: media_player.family_room_amp
+    data:
+      source: NintendoSwitch (hdmi3)
+  - action: button.press
+    target:
+      entity_id: button.rs90_family_room_rgb_ring_light
+    continue_on_error: true
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.rs90_display
+    data:
+      option: Remote

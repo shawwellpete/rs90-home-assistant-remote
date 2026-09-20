@@ -1,0 +1,6 @@
+# RS90 input_boolean helper, extracted from input_boolean.yaml.
+# Merge this key into your own input_boolean: block.
+
+rs90_low_battery_latch:
+  name: RS90 Low Battery Latch
+  icon: mdi:battery-alert

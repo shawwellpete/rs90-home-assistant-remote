@@ -1,0 +1,100 @@
+# Sonos context strip, shown in Zone 1 when activity=Sonos and display=Remote
+# Replaces track info with direct amp volume controls, freeing main zone for maxi player
+type: grid
+columns: 4
+square: false
+cards:
+
+  - type: custom:button-card
+    icon: mdi:volume-minus
+    name: Vol Down
+    show_state: false
+    tap_action:
+      action: call-service
+      service: media_player.volume_down
+      service_data:
+        entity_id: media_player.family_room_amp
+    styles:
+      card:
+        - height: 56px
+        - border-radius: 10px
+        - background-color: rgba(128,128,128,0.10)
+      icon:
+        - width: 22px
+        - color: var(--secondary-text-color)
+      name:
+        - font-size: 11px
+        - font-weight: 600
+        - color: var(--secondary-text-color)
+
+  - type: custom:button-card
+    entity: media_player.family_room_amp
+    icon: mdi:volume-off
+    name: Mute
+    show_state: false
+    tap_action:
+      action: call-service
+      service: media_player.volume_mute
+      service_data:
+        entity_id: media_player.family_room_amp
+        is_volume_muted: >
+          [[[return !entity?.attributes?.is_volume_muted;]]]
+    styles:
+      card:
+        - height: 56px
+        - border-radius: 10px
+        - background-color: >
+            [[[return entity?.attributes?.is_volume_muted ? 'rgba(255,0,0,0.18)' : 'rgba(128,128,128,0.10)';]]]
+      icon:
+        - width: 22px
+        - color: >
+            [[[return entity?.attributes?.is_volume_muted ? '#FF3B30' : 'var(--secondary-text-color)';]]]
+      name:
+        - font-size: 11px
+        - font-weight: 600
+        - color: >
+            [[[return entity?.attributes?.is_volume_muted ? '#FF3B30' : 'var(--secondary-text-color)';]]]
+
+  - type: custom:button-card
+    icon: mdi:volume-plus
+    name: Vol Up
+    show_state: false
+    tap_action:
+      action: call-service
+      service: media_player.volume_up
+      service_data:
+        entity_id: media_player.family_room_amp
+    styles:
+      card:
+        - height: 56px
+        - border-radius: 10px
+        - background-color: rgba(128,128,128,0.10)
+      icon:
+        - width: 22px
+        - color: var(--secondary-text-color)
+      name:
+        - font-size: 11px
+        - font-weight: 600
+        - color: var(--secondary-text-color)
+
+  - type: custom:button-card
+    entity: media_player.family_room_amp
+    icon: mdi:amplifier
+    show_name: false
+    show_state: false
+    tap_action:
+      action: call-service
+      service: >
+        [[[return entity?.state === 'off' ? 'media_player.turn_on' : 'media_player.turn_off';]]]
+      service_data:
+        entity_id: media_player.family_room_amp
+    styles:
+      card:
+        - height: 56px
+        - border-radius: 10px
+        - background-color: >
+            [[[return entity?.state === 'off' ? 'rgba(128,128,128,0.10)' : 'rgba(255,165,0,0.22)';]]]
+      icon:
+        - width: 26px
+        - color: >
+            [[[return entity?.state === 'off' ? 'var(--secondary-text-color)' : '#FFA500';]]]

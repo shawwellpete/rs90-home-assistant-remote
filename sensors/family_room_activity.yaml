@@ -1,0 +1,33 @@
+# Legacy-style `sensor:` platform template, meant for HA's
+# `template: !include_dir_merge_list templates/` directory.
+# Drives the whole RS90 dashboard (which panel shows, context strip state).
+- sensor:
+  - name: family_room_activity
+    unique_id: family_room_activity
+    state: >
+      {% set tv = states('media_player.family_room_tv') %}
+      {% set amp_src = state_attr('media_player.family_room_amp', 'source') | default('') %}
+      {% set tv_src = state_attr('media_player.family_room_tv', 'source') | default('') %}
+      {% set sonos_fr = states('media_player.family_room') %}
+      {% set amp_on = states('media_player.family_room_amp') not in ['off', 'unavailable', 'unknown'] %}
+      {% if tv not in ['off', 'unavailable', 'unknown'] %}
+        {% if tv_src == 'RX-V6A' %}
+          {% if amp_src == 'Freesat' %}Freesat
+          {% elif amp_src == 'NintendoSwitch (hdmi3)' %}Nintendo
+          {% else %}Smart TV{% endif %}
+        {% else %}Smart TV{% endif %}
+      {% elif tv in ['unavailable', 'unknown'] and amp_on %}
+        {% if amp_src == 'AUDIO3' %}Sonos
+        {% elif amp_src == 'TV' %}Smart TV
+        {% elif amp_src == 'Freesat' %}Freesat
+        {% elif amp_src == 'NintendoSwitch (hdmi3)' %}Nintendo
+        {% else %}Off{% endif %}
+      {% elif amp_src == 'AUDIO3' and amp_on %}Sonos
+      {% elif sonos_fr == 'playing' %}Sonos
+      {% else %}Off{% endif %}
+    attributes:
+      tv_state: "{{ states('media_player.family_room_tv') }}"
+      tv_source: "{{ state_attr('media_player.family_room_tv', 'source') | default('unknown') }}"
+      amp_state: "{{ states('media_player.family_room_amp') }}"
+      amp_source: "{{ state_attr('media_player.family_room_amp', 'source') | default('unknown') }}"
+      sonos_state: "{{ states('media_player.family_room') }}"

@@ -1,0 +1,23 @@
+# RS90 input_select helpers, extracted from input_select.yaml.
+# Merge these keys into your own input_select: block.
+
+rs90_display:
+  name: RS90 Display
+  options:
+    - Remote
+    - Lights
+    - Sound
+  initial: Remote
+  icon: mdi:remote
+
+rs90_activity:
+  name: RS90 Activity
+  options:
+    - rest
+    - vol_up
+    - vol_down
+    - lights
+    - sound
+    - channels
+    - home
+  icon: mdi:gesture-tap

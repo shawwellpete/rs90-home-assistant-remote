@@ -1,0 +1,83 @@
+type: grid
+columns: 2
+square: false
+cards:
+  - type: picture
+    image: /local/pictures/netflix_new.png
+    tap_action:
+      action: call-service
+      service: media_player.select_source
+      data:
+        source: Netflix
+      target:
+        entity_id: media_player.family_room_tv
+
+  - type: picture
+    image: /local/pictures/prime.png
+    tap_action:
+      action: call-service
+      service: media_player.select_source
+      data:
+        source: Prime Video
+      target:
+        entity_id: media_player.family_room_tv
+
+  - type: picture
+    image: /local/pictures/youtube_new.png
+    tap_action:
+      action: call-service
+      service: media_player.select_source
+      data:
+        source: YouTube
+      target:
+        entity_id: media_player.family_room_tv
+
+  - type: picture
+    image: /local/pictures/disney.png
+    tap_action:
+      action: call-service
+      service: media_player.select_source
+      data:
+        source: Disney+
+      target:
+        entity_id: media_player.family_room_tv
+
+  - type: picture
+    image: /local/pictures/now.png
+    tap_action:
+      action: call-service
+      service: media_player.select_source
+      data:
+        source: NOW
+      target:
+        entity_id: media_player.family_room_tv
+
+  - type: picture
+    image: /local/pictures/bbc.png
+    tap_action:
+      action: call-service
+      service: media_player.select_source
+      data:
+        source: BBC iPlayer
+      target:
+        entity_id: media_player.family_room_tv
+
+  - type: picture
+    image: /local/pictures/paramount.png
+    tap_action:
+      action: call-service
+      service: media_player.select_source
+      data:
+        source: Paramount+
+      target:
+        entity_id: media_player.family_room_tv
+
+  - type: picture
+    image: /local/pictures/apple_new.png
+    tap_action:
+      action: call-service
+      service: media_player.select_source
+      data:
+        source: Apple TV
+      target:
+        entity_id: media_player.family_room_tv

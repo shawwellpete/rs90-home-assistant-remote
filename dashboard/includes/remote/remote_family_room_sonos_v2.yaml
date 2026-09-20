@@ -1,0 +1,49 @@
+# Sonos compact panel (replaces maxi-media-player to fix height overflow)
+# Layout:
+#   Compact Mushroom media player (Sonos)  ~220px
+#   Amp volume row (vol down / mute / vol up)  110px
+#   Amp off button  60px
+# Total: ~400px, fits in 650px main zone
+type: vertical-stack
+cards:
+
+  # ── MAXI MEDIA PLAYER ────────────────────────────────────────────
+  # heightPercentage reduced from 80 to 60 to fit within the fixed zone.
+  # 60% of 800px viewport = 480px, leaving ~185px for volume row + amp off.
+  - type: custom:maxi-media-player
+    sections:
+      - player
+      - media browser
+      - grouping
+      - volumes
+    favoritesItemsPerRow: 2
+    showVolumeUpAndDownButtons: true
+    showFastForwardAndRewindButtons: false
+    startSection: player
+    hidePlayerControlPowerButton: false
+    hidePlayerControlShuffleButton: false
+    hidePlayerControlPrevTrackButton: false
+    hidePlayerControlRepeatButton: true
+    topFavorites:
+      - ""
+    hideGroupCurrentTrack: false
+    dynamicVolumeSlider: false
+    entities:
+      - media_player.kitchen
+      - media_player.move
+      - media_player.family_room
+    dynamicVolumeSliderMax: 65
+    hideBrowseMediaButton: false
+    artworkMinHeight: 6
+    showAudioInputFormat: false
+    adjustVolumeRelativeToMainPlayer: false
+    favoritesHideTitleForThumbnailIcons: false
+    artworkAsBackground: false
+    artworkAsBackgroundBlur: 0
+    playerControlsAndHeaderBackgroundOpacity: 0
+    showSourceInPlayer: false
+    sortFavoritesByType: true
+    compactGrouping: false
+    heightPercentage: 81
+
+  # Vol controls and amp off moved to context strip (Zone 1)

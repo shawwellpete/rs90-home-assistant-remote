@@ -1,0 +1,110 @@
+# Activity picker, shown when activity = Off (or Nintendo with no dedicated panel)
+# 2-column × 2-row grid. Bigger buttons at ~220px each.
+type: grid
+columns: 2
+square: false
+cards:
+
+  - type: custom:button-card
+    entity: script.family_room_tv_on
+    name: Smart TV
+    icon: mdi:television
+    show_state: false
+    tap_action:
+      action: call-service
+      service: script.turn_on
+      service_data:
+        entity_id: script.family_room_tv_on
+    styles:
+      card:
+        - background-color: rgba(0,128,128,0.15)
+        - border-radius: 14px
+        - padding: 16px
+        - min-height: 220px
+      icon:
+        - width: 56px
+        - color: >
+            [[[return states['sensor.family_room_activity']?.state === 'Smart TV' ? '#FFA500' : '#0080FF';]]]
+      name:
+        - font-size: 18px
+        - font-weight: 700
+        - color: >
+            [[[return states['sensor.family_room_activity']?.state === 'Smart TV' ? '#FFA500' : 'var(--primary-text-color)';]]]
+
+  - type: custom:button-card
+    entity: script.family_room_freesat_on
+    name: Freesat
+    icon: mdi:satellite-variant
+    show_state: false
+    tap_action:
+      action: call-service
+      service: script.turn_on
+      service_data:
+        entity_id: script.family_room_freesat_on
+    styles:
+      card:
+        - background-color: rgba(0,128,128,0.15)
+        - border-radius: 14px
+        - padding: 16px
+        - min-height: 220px
+      icon:
+        - width: 56px
+        - color: >
+            [[[return states['sensor.family_room_activity']?.state === 'Freesat' ? '#FFA500' : '#0080FF';]]]
+      name:
+        - font-size: 18px
+        - font-weight: 700
+        - color: >
+            [[[return states['sensor.family_room_activity']?.state === 'Freesat' ? '#FFA500' : 'var(--primary-text-color)';]]]
+
+  - type: custom:button-card
+    entity: script.family_room_nintendo_on
+    name: Nintendo
+    icon: mdi:nintendo-switch
+    show_state: false
+    tap_action:
+      action: call-service
+      service: script.turn_on
+      service_data:
+        entity_id: script.family_room_nintendo_on
+    styles:
+      card:
+        - background-color: rgba(0,128,128,0.15)
+        - border-radius: 14px
+        - padding: 16px
+        - min-height: 220px
+      icon:
+        - width: 56px
+        - color: >
+            [[[return states['sensor.family_room_activity']?.state === 'Nintendo' ? '#FFA500' : '#0080FF';]]]
+      name:
+        - font-size: 18px
+        - font-weight: 700
+        - color: >
+            [[[return states['sensor.family_room_activity']?.state === 'Nintendo' ? '#FFA500' : 'var(--primary-text-color)';]]]
+
+  - type: custom:button-card
+    entity: script.family_room_sonos_on
+    name: Sonos
+    icon: mdi:speaker-multiple
+    show_state: false
+    tap_action:
+      action: call-service
+      service: script.turn_on
+      service_data:
+        entity_id: script.family_room_sonos_on
+    styles:
+      card:
+        - background-color: rgba(0,128,128,0.15)
+        - border-radius: 14px
+        - padding: 16px
+        - min-height: 220px
+      icon:
+        - width: 56px
+        - color: >
+            [[[return states['sensor.family_room_activity']?.state === 'Sonos' ? '#FFA500' : '#0080FF';]]]
+      name:
+        - font-size: 18px
+        - font-weight: 700
+        - color: >
+            [[[return states['sensor.family_room_activity']?.state === 'Sonos' ? '#FFA500' : 'var(--primary-text-color)';]]]

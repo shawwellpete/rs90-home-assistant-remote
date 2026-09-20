@@ -1,0 +1,79 @@
+# Sanitisation applied: the Haptique remote/device id -> YOUR_REMOTE_ID
+# (in the three mqtt.publish topics below).
+type: vertical-stack
+cards:
+  - type: custom:mushroom-template-card
+    primary: Turn on Freesat box
+    secondary: Use the physical power button
+    tap_action: { action: none }
+    layout: vertical
+    card_mod:
+      style: |
+        ha-card {
+          background-color: rgba(0, 0, 0, 0.65);
+          color: white;
+          border-radius: 14px;
+          text-align: center;
+          padding: 18px 12px;
+        }
+        .primary { font-size: 40px; line-height: 32px; font-weight: 700; }
+        .secondary { font-size: 20px; line-height: 24px; opacity: 0.75; }
+        .primary, .secondary { text-align: center; width: 100%; }
+
+  - type: grid
+    columns: 2
+    square: false
+    cards:
+      - type: custom:button-card
+        name: Menu
+        icon: mdi:menu
+        tap_action:
+          action: call-service
+          service: mqtt.publish
+          service_data:
+            topic: "Haptique/YOUR_REMOTE_ID/device/Humax - 2430/trigger"
+            payload: "MENU"
+        styles:
+          card:
+            - background-color: rgba(0,128,128,0.15)
+            - border-radius: 12px
+            - padding: 18px
+            - min-height: 172px
+          icon: [ { color: "#0080FF" }, { width: 64px } ]
+          name: [ { color: "#0080FF" }, { font-size: 24px }, { font-weight: 700 } ]
+
+      - type: custom:button-card
+        name: Guide
+        icon: mdi:television-guide
+        tap_action:
+          action: call-service
+          service: mqtt.publish
+          service_data:
+            topic: "Haptique/YOUR_REMOTE_ID/device/Humax - 2430/trigger"
+            payload: "GUIDE"
+        styles:
+          card:
+            - background-color: rgba(0,128,128,0.15)
+            - border-radius: 12px
+            - padding: 18px
+            - min-height: 172px
+          icon: [ { color: "#0080FF" }, { width: 64px } ]
+          name: [ { color: "#0080FF" }, { font-size: 24px }, { font-weight: 700 } ]
+
+      - type: custom:button-card
+        name: Search
+        icon: mdi:magnify
+        tap_action:
+          action: call-service
+          service: mqtt.publish
+          service_data:
+            topic: "Haptique/YOUR_REMOTE_ID/device/Humax - 2430/trigger"
+            payload: "SEARCH"
+        styles:
+          card:
+            - background-color: rgba(0,128,128,0.15)
+            - border-radius: 12px
+            - padding: 18px
+            - min-height: 172px
+          icon: [ { color: "#0080FF" }, { width: 64px } ]
+          name: [ { color: "#0080FF" }, { font-size: 24px }, { font-weight: 700 } ]

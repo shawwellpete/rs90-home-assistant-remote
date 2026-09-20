@@ -1,0 +1,271 @@
+type: vertical-stack
+cards:
+
+  ####################################################
+  # ROW 1: TV LIGHTS + KITCHEN
+  ####################################################
+  - type: grid
+    columns: 2
+    square: false
+    cards:
+
+      # ────────────────
+      # TV LIGHTS
+      # ────────────────
+      # 2026-05-22: bound to script.rs90_tv_lights (not script.downstairs_tv).
+      # RS90 spec: family off except glass lamps, dining off, kitchen and
+      # lower hallway untouched. The cascade-based downstairs_tv touched
+      # kitchen and (via pre-broadcast) flashed everything bright.
+      #
+      # 2026-08-08: reason expired. downstairs_apply (2026-06-03) killed
+      # the cascade and the pre-broadcast, and downstairs_tv already has
+      # kitchen: skip / pelmets: skip. Repointed at the shared
+      # script.downstairs_tv so the RS90 dash and the remote (Family Room)
+      # dash run identical TV lighting. script.rs90_tv_lights is retired.
+      - type: custom:mushroom-template-card
+        primary: TV lights
+        icon: mdi:television-ambient-light
+        tap_action:
+          action: call-service
+          service: script.turn_on
+          target:
+            # entity_id: script.rs90_tv_lights   # pre-2026-08-08
+            entity_id: script.downstairs_tv
+        icon_color: |-
+          {% if is_state('input_select.light_style', 'tv') %}
+          orange
+          {% else %}
+          grey
+          {% endif %}
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 14px;
+              min-height: 110px;
+              padding: 16px;
+              background-color: {% if is_state('input_select.light_style', 'tv') %}
+                rgba(255, 165, 0, 0.28)
+              {% else %}
+                rgba(128, 128, 128, 0.15)
+              {% endif %};
+            }
+            .primary { font-size: 22px; font-weight: 700; }
+            ha-state-icon { --mdc-icon-size: 36px; }
+
+      # ────────────────
+      # KITCHEN
+      # ────────────────
+      - type: custom:mushroom-template-card
+        primary: Kitchen
+        icon: mdi:lightbulb-group
+        entity: light.kitchen_lights
+        tap_action:
+          action: call-service
+          service: light.toggle
+          target:
+            entity_id: light.kitchen_lights
+        icon_color: |-
+          {% if is_state('light.kitchen_lights','on') %}
+          orange
+          {% else %}
+          grey
+          {% endif %}
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 14px;
+              min-height: 110px;
+              padding: 16px;
+              background-color: {% if is_state('light.kitchen_lights','on') %}
+                rgba(255, 165, 0, 0.22)
+              {% else %}
+                rgba(128, 128, 128, 0.15)
+              {% endif %};
+            }
+            .primary { font-size: 22px; font-weight: 700; }
+            ha-state-icon { --mdc-icon-size: 36px; }
+
+  ####################################################
+  # ROW 2: LAMPS + DINING
+  ####################################################
+  - type: grid
+    columns: 2
+    square: false
+    cards:
+
+      # ────────────────
+      # LIGHTS ON (family room standard)
+      # ────────────────
+      # 2026-05-22: was "Standard" calling script.downstairs_standard
+      # (full cascade with pre-broadcast). Renamed to "Lights on" and
+      # rebound to fire scene.family_room_standard directly. No cascade,
+      # no kitchen/dining/LH touch, no input_select.light_style change.
+      # Highlight tracks light.family_room_downlights (the ceiling lights)
+      # not input_select.light_style.
+      - type: custom:mushroom-template-card
+        primary: Lights on
+        icon: |-
+          {% if is_state('light.family_room_downlights', 'on') %}
+          mdi:lightbulb
+          {% else %}
+          mdi:lightbulb-outline
+          {% endif %}
+        tap_action:
+          action: call-service
+          service: scene.turn_on
+          target:
+            entity_id: scene.family_room_standard
+        icon_color: |-
+          {% if is_state('light.family_room_downlights', 'on') %}
+          orange
+          {% else %}
+          grey
+          {% endif %}
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 14px;
+              min-height: 110px;
+              padding: 16px;
+              background-color: {% if is_state('light.family_room_downlights', 'on') %}
+                rgba(255, 165, 0, 0.22)
+              {% else %}
+                rgba(128, 128, 128, 0.15)
+              {% endif %};
+            }
+            .primary { font-size: 22px; font-weight: 700; }
+            ha-state-icon { --mdc-icon-size: 36px; }
+
+      # ────────────────
+      # DINING
+      # ────────────────
+      - type: custom:mushroom-template-card
+        primary: Dining
+        icon: mdi:lightbulb-group
+        entity: light.dining_room_lights
+        tap_action:
+          action: call-service
+          service: light.toggle
+          target:
+            entity_id: light.dining_room_lights
+        icon_color: |-
+          {% if is_state('light.dining_room_lights','on') %}
+          orange
+          {% else %}
+          grey
+          {% endif %}
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 14px;
+              min-height: 110px;
+              padding: 16px;
+              background-color: {% if is_state('light.dining_room_lights','on') %}
+                rgba(255, 165, 0, 0.22)
+              {% else %}
+                rgba(128, 128, 128, 0.15)
+              {% endif %};
+            }
+            .primary { font-size: 22px; font-weight: 700; }
+            ha-state-icon { --mdc-icon-size: 36px; }
+
+  ####################################################
+  # ROW 3: ALL LIGHTS OFF (full width, incl. garden)
+  ####################################################
+  # 2026-05-22: was script.downstairs_off_for_tv (the TV-ambience scene),
+  # which left kitchen + LH lights on and never touched garden. Now bound
+  # to script.downstairs_all_off which fires downstairs_off (all 4 rooms)
+  # plus light.turn_off on light.garden_lights + light.back_stairwell.
+  # 2026-08-08: script renamed rs90_all_off -> downstairs_all_off (the
+  # remote dash calls it too now).
+  - type: custom:mushroom-template-card
+    primary: All lights off
+    secondary: Includes garden + back stairwell
+    icon: mdi:lightbulb-off
+    tap_action:
+      action: call-service
+      service: script.turn_on
+      target:
+        # entity_id: script.rs90_all_off   # renamed 2026-08-08
+        entity_id: script.downstairs_all_off
+    card_mod:
+      style: |
+        ha-card {
+          border-radius: 14px;
+          min-height: 80px;
+          padding: 14px 16px;
+          background-color: rgba(0, 128, 128, 0.15);
+          color: #0080FF;
+          --card-mod-icon-color: #0080FF;
+        }
+        .primary { font-size: 20px; font-weight: 700; }
+        .secondary { font-size: 14px; opacity: 0.75; }
+        ha-state-icon { --mdc-icon-size: 32px; }
+
+  ####################################################
+  # ROW 4: BLINDS
+  ####################################################
+  - type: grid
+    columns: 2
+    square: false
+    cards:
+
+      # BLINDS UP
+      - type: custom:mushroom-template-card
+        primary: Blinds up
+        icon: mdi:blinds-open
+        tap_action:
+          action: call-service
+          service: cover.open_cover
+          target:
+            entity_id: cover.family_room_blinds
+        icon_color: |-
+          {% if is_state('cover.family_room_blinds','open') %}
+          #00C853
+          {% else %}
+          grey
+          {% endif %}
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 14px;
+              min-height: 110px;
+              padding: 16px;
+              background-color: {% if is_state('cover.family_room_blinds','open') %}
+                rgba(0, 200, 83, 0.20)
+              {% else %}
+                rgba(128, 128, 128, 0.15)
+              {% endif %};
+            }
+            .primary { font-size: 22px; font-weight: 700; }
+            ha-state-icon { --mdc-icon-size: 36px; }
+
+      # BLINDS DOWN
+      - type: custom:mushroom-template-card
+        primary: Down
+        icon: mdi:blinds
+        tap_action:
+          action: call-service
+          service: cover.close_cover
+          target:
+            entity_id: cover.family_room_blinds
+        icon_color: |-
+          {% if is_state('cover.family_room_blinds','closed') %}
+          #00C853
+          {% else %}
+          grey
+          {% endif %}
+        card_mod:
+          style: |
+            ha-card {
+              border-radius: 14px;
+              min-height: 110px;
+              padding: 16px;
+              background-color: {% if is_state('cover.family_room_blinds','closed') %}
+                rgba(0, 200, 83, 0.20)
+              {% else %}
+                rgba(128, 128, 128, 0.15)
+              {% endif %};
+            }
+            .primary { font-size: 22px; font-weight: 700; }
+            ha-state-icon { --mdc-icon-size: 36px; }

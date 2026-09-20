@@ -1,0 +1,174 @@
+# Context strip button-card (Zone 1, 59px)
+# Priority order:
+#   1. Battery low (latch OR <20%) AND unplugged → red alert
+#   2. Plugged in → teal charging
+#   3. rs90_activity != rest AND != home → feedback (blue)
+#   4. activity = Off → all lights off shortcut
+#   5. Lamps toggle (orange if on, grey if off)
+type: custom:button-card
+entity: sensor.family_room_activity
+layout: icon_name_2nd
+show_state: false
+show_label: true
+
+icon: >
+  [[[
+    const rs90 = states['input_select.rs90_activity']?.state || 'rest';
+    const fam = entity?.state || 'Off';
+    const plug = states['binary_sensor.haptique_rs90_plugged_in']?.state === 'on';
+    const batPct = parseInt(states['sensor.haptique_rs90_battery']?.state || '100');
+    const batLow = (states['input_boolean.rs90_low_battery_latch']?.state === 'on' || batPct < 20) && !plug;
+    if (batLow) return 'mdi:battery-alert';
+    if (plug) return 'mdi:battery-charging';
+    if (rs90 !== 'rest' && rs90 !== 'home') {
+      const icons = {
+        vol_up: 'mdi:volume-plus', vol_down: 'mdi:volume-minus',
+        lights: 'mdi:lightbulb', sound: 'mdi:volume-high',
+        channels: 'mdi:remote'
+      };
+      return icons[rs90] || 'mdi:gesture-tap';
+    }
+    if (fam === 'Off') return 'mdi:lightbulb-off';
+    if (fam === 'Sonos') return 'mdi:music-note';
+    return 'mdi:floor-lamp';
+  ]]]
+
+name: >
+  [[[
+    const rs90 = states['input_select.rs90_activity']?.state || 'rest';
+    const fam = entity?.state || 'Off';
+    const plug = states['binary_sensor.haptique_rs90_plugged_in']?.state === 'on';
+    const batPct = parseInt(states['sensor.haptique_rs90_battery']?.state || '100');
+    const batLow = (states['input_boolean.rs90_low_battery_latch']?.state === 'on' || batPct < 20) && !plug;
+    if (batLow) return 'Please charge';
+    if (plug) return 'Charging';
+    if (rs90 !== 'rest' && rs90 !== 'home') {
+      const labels = {
+        vol_up: 'Volume up', vol_down: 'Volume down',
+        lights: 'Lights', sound: 'Sound',
+        channels: 'Channels'
+      };
+      return labels[rs90] || 'Action';
+    }
+    if (fam === 'Off') return 'All lights off';
+    if (fam === 'Sonos') {
+      return states['media_player.family_room']?.attributes?.media_title || 'Sonos';
+    }
+    return 'Lamps';
+  ]]]
+
+label: >
+  [[[
+    const rs90 = states['input_select.rs90_activity']?.state || 'rest';
+    const fam = entity?.state || 'Off';
+    const plug = states['binary_sensor.haptique_rs90_plugged_in']?.state === 'on';
+    const batPct = parseInt(states['sensor.haptique_rs90_battery']?.state || '100');
+    const batLow = (states['input_boolean.rs90_low_battery_latch']?.state === 'on' || batPct < 20) && !plug;
+    if (batLow) return `Battery ${batPct}%`;
+    if (plug) return `Battery ${batPct}%`;
+    if (rs90 !== 'rest' && rs90 !== 'home') {
+      if (rs90 === 'vol_up' || rs90 === 'vol_down') {
+        const vol = Math.round((states['media_player.family_room_amp']?.attributes?.volume_level || 0) * 100);
+        return `Amp ${vol}%`;
+      }
+      return '';
+    }
+    if (fam === 'Off') return 'Tap to turn all lights off';
+    if (fam === 'Sonos') {
+      return states['media_player.family_room']?.attributes?.media_artist || '';
+    }
+    return 'Toggle glass lamps';
+  ]]]
+
+tap_action:
+  action: >
+    [[[
+      const rs90 = states['input_select.rs90_activity']?.state || 'rest';
+      const fam = entity?.state || 'Off';
+      const plug = states['binary_sensor.haptique_rs90_plugged_in']?.state === 'on';
+      const batPct = parseInt(states['sensor.haptique_rs90_battery']?.state || '100');
+      const batLow = (states['input_boolean.rs90_low_battery_latch']?.state === 'on' || batPct < 20) && !plug;
+      if (batLow || plug) return 'none';
+      if (rs90 !== 'rest' && rs90 !== 'home') return 'none';
+      if (fam === 'Sonos') return 'none';
+      return 'call-service';
+    ]]]
+  service: >
+    [[[
+      const fam = entity?.state || 'Off';
+      if (fam === 'Off') return 'script.turn_on';
+      return 'light.toggle';
+    ]]]
+  service_data:
+    entity_id: >
+      [[[
+        const fam = entity?.state || 'Off';
+        // 2026-08-08: renamed from script.rs90_all_off
+        if (fam === 'Off') return 'script.downstairs_all_off';
+        return 'light.glass_lamps';
+      ]]]
+
+styles:
+  card:
+    - height: 59px
+    - min-height: 59px
+    - max-height: 59px
+    - overflow: hidden
+    - border-radius: 14px
+    - padding: 0 16px
+    - margin: 0
+    - background-color: >
+        [[[
+          const rs90 = states['input_select.rs90_activity']?.state || 'rest';
+          const fam = entity?.state || 'Off';
+          const plug = states['binary_sensor.haptique_rs90_plugged_in']?.state === 'on';
+          const batPct = parseInt(states['sensor.haptique_rs90_battery']?.state || '100');
+          const batLow = (states['input_boolean.rs90_low_battery_latch']?.state === 'on' || batPct < 20) && !plug;
+          if (batLow) return 'rgba(255, 0, 0, 0.18)';
+          if (plug) return 'rgba(0, 200, 180, 0.20)';
+          if (rs90 !== 'rest' && rs90 !== 'home') return 'rgba(0, 128, 255, 0.15)';
+          if (fam === 'Off') return 'rgba(0, 128, 128, 0.15)';
+          if (fam === 'Sonos') return 'rgba(128, 0, 200, 0.12)';
+          const lampsOn = states['light.glass_lamps']?.state === 'on';
+          return lampsOn ? 'rgba(255, 165, 0, 0.22)' : 'rgba(128, 128, 128, 0.15)';
+        ]]]
+  grid:
+    - grid-template-areas: '"i n" "i l"'
+    - grid-template-columns: 56px 1fr
+    - grid-template-rows: auto auto
+    - align-items: center
+  icon:
+    - width: 28px
+    - align-self: center
+    - color: >
+        [[[
+          const rs90 = states['input_select.rs90_activity']?.state || 'rest';
+          const fam = entity?.state || 'Off';
+          const plug = states['binary_sensor.haptique_rs90_plugged_in']?.state === 'on';
+          const batPct = parseInt(states['sensor.haptique_rs90_battery']?.state || '100');
+          const batLow = (states['input_boolean.rs90_low_battery_latch']?.state === 'on' || batPct < 20) && !plug;
+          if (batLow) return '#FF3B30';
+          if (plug) return '#00C8B4';
+          if (rs90 !== 'rest' && rs90 !== 'home') return '#0080FF';
+          if (fam === 'Off') return '#0080FF';
+          if (fam === 'Sonos') return '#9B59B6';
+          const lampsOn = states['light.glass_lamps']?.state === 'on';
+          return lampsOn ? '#FFA500' : 'grey';
+        ]]]
+  name:
+    - font-size: 17px
+    - font-weight: 800
+    - text-align: left
+    - color: >
+        [[[
+          const plug = states['binary_sensor.haptique_rs90_plugged_in']?.state === 'on';
+          const batPct = parseInt(states['sensor.haptique_rs90_battery']?.state || '100');
+          const batLow = (states['input_boolean.rs90_low_battery_latch']?.state === 'on' || batPct < 20) && !plug;
+          if (batLow) return '#FF3B30';
+          if (plug) return '#00C8B4';
+          return 'var(--primary-text-color)';
+        ]]]
+  label:
+    - font-size: 12px
+    - text-align: left
+    - opacity: "0.80"
